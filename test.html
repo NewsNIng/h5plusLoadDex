@@ -1,0 +1,104 @@
+<!doctype html>
+<html>
+
+	<head>
+		<meta charset="UTF-8">
+		<title></title>
+		<meta name="viewport" content="width=device-width,initial-scale=1,minimum-scale=1,maximum-scale=1,user-scalable=no" />
+		<link href="css/mui.min.css" rel="stylesheet" />
+		
+		
+	</head>
+
+
+	<body>
+		<header class="mui-bar mui-bar-nav">
+		    <h1 class="mui-title">动态加载外部apk测试</h1>
+		</header>
+		<div class="mui-content">
+		</div>
+		<script src="js/mui.min.js"></script>
+		<script type="text/javascript">
+			mui.init();
+			mui.plusReady(function(){
+				
+				
+				
+				
+				// 导入 Bundle
+				var Bundel = plus.android.importClass('android.os.Bundle');
+				// 导入加载器
+				var DexClassLoader = plus.android.importClass('dalvik.system.DexClassLoader');
+				var ClassLoader = plus.android.importClass('java.lang.ClassLoader');
+				
+				
+				
+				var paramBundle = new Bundel();
+				paramBundle.putBoolean("KEY_START_FROM_OTHER_ACTIVITY", true);
+				var www = plus.io.convertLocalFileSystemURL('_www/');
+				var dexpath =  www + "apk/TestB.apk";
+				var dexoutputpath = www + "apk/";
+				
+				
+				
+				
+				
+				var localDexClassLoader = new DexClassLoader(dexpath, dexoutputpath, null, ClassLoader.getSystemClassLoader());
+				
+				
+				var PackageInfo = plus.android.importClass('android.content.pm.PackageInfo');
+				var PackageManager = plus.android.importClass('android.content.pm.PackageManager');
+				
+				plus.android.importClass("android.content.pm.ActivityInfo");
+				
+				var Context = plus.android.importClass('android.content.Context');
+				var MainActivity = plus.android.runtimeMainActivity();
+				
+				var plocalObject = MainActivity.getPackageManager().getPackageArchiveInfo(dexpath, 1);
+				
+				var packageName = plocalObject.plusGetAttribute("packageName");
+				var activities = plocalObject.plusGetAttribute("activities");
+				//console.log(packageName)
+
+				if (activities && activities.length > 0) {
+					// 获取 Activity 名称
+					var activityname =  activities[0].plusGetAttribute('name');
+					// 获取到外部 apk Activity 名称
+					
+					var JavaClass = plus.android.importClass('java.lang.Class');
+					plus.android.importClass('java.lang.reflect.Constructor');
+					console.log(activityname)
+					var localClass = localDexClassLoader.loadClass(activityname);
+					
+					
+					var localConstructor = localClass.getConstructor(null);
+					
+					
+					var JavaObject = plus.android.importClass('java.lang.Object');
+					var instance = localConstructor.newInstance(null);
+					
+					
+					plus.android.importClass('java.lang.reflect.Method');
+					
+
+					var methods = localClass.getDeclaredMethods();
+					
+
+					methods[1].setAccessible(true);
+					methods[1].invoke(instance, [MainActivity]); 
+					
+					
+					methods[0].setAccessible(true);
+					methods[0].invoke(instance, [paramBundle]); 
+					
+					
+					
+					
+				}
+				
+			});
+			
+		</script>
+	</body>
+
+</html>
